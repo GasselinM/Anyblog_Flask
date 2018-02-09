@@ -1,0 +1,14 @@
+{% extends "pages/base.html" %}
+
+{% block content %} 
+    <h1>Blog</h1>
+    <article>
+        <h2>
+            <a href= "{{ url_for('posts_show', id=post.id) }}">
+                #{{ post.id }} - {{ post.title|lower }}
+            </a>
+        </h2>
+        <p>{{ post.content }}</p>
+    </article>
+
+{% endblock %}
