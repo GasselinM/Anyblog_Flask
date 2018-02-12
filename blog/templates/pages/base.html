@@ -15,8 +15,20 @@
         <li> <a href="{{ url_for('home') }}"> Home </a></li>
         <li> <a href="{{ url_for('contact') }}"> Contact </a></li>
         <li> <a href="{{ url_for('aboutme') }}"> aboutme </a></li>
+        <li> <a href="{{ url_for('posts_index') }}"> Got to blog </a></li>
+        <li> <a href="{{ url_for('login') }}">Login</a></li>        
     </ul>
 </nav>
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+<ul>
+    {% for message in messages %}
+    <li>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+{% endwith %}
+
 {% block content %} {% endblock %}
 
    

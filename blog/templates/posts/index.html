@@ -9,6 +9,7 @@
                 #{{ post.id }} - {{ post.title|lower }}
             </a>
         </h2>
+        <p>Created on {{ post.createdat }}</p>
         <p>{{ post.content }}</p>
     </article>
     {% endfor %}
