@@ -1,10 +1,18 @@
-from flask import Flask, render_template, abort, flash, redirect, request, url_for
+from flask import Flask, render_template, abort, flash, redirect, request, url_for, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from datetime import datetime
-from forms import LoginForm
+from wtforms import Form
+import forms
 import os
+from flask import render_template, request, flash
+
+#from flask.ext.sqlalchemy import SQLAlchemy
+from werkzeug import generate_password_hash, check_password_hash
+
+#from flaskext.mail import Mail, Message
+
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'you-will-never-guess'
@@ -23,10 +31,23 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    nickname = db.Column(db.String(64), index=True, unique=True)
-    email = db.Column(db.String(120), index=True, unique=True)
-    posts = db.relationship('Post', backref='author', lazy='dynamic')
+    __tablename__ = 'users'
+    uid = db.Column(db.Integer, primary_key=True)
+    nickname = db.Column(db.String(64))
+    email = db.Column(db.String(120), unique=True)
+    #posts = db.relationship('Post', backref='author', lazy='dynamic')
+    pwdhash = db.Column(db.String(54))
+
+    def __init__(self, nickname, email, password):
+        self.nickname = nickname.title()
+        self.email = email.lower()
+        self.set_password(password)
+
+    def set_password(self, password):
+        self.pwdhash = generate_password_hash(password)
+   
+    def check_password(self, password):
+        return check_password_hash(self.pwdhash, password)
 
     def __repr__(self):
         return '<User %r>' % (self.nickname)
@@ -37,7 +58,7 @@ class Post(db.Model):
     content = db.Column(db.Text)
     createdat = db.Column(db.DateTime, default= db.func.now())
     updateat = db.Column(db.DateTime, default= db.func.now(), onupdate=db.func.now())
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    #user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
     def __init__(self, title, content):
         self.title = title
@@ -128,6 +149,58 @@ def login():
             form.username.data, form.remember_me.data))
         return redirect(url_for('home'))
     return render_template('login.html', title='Sign In', form=form)
+
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    form = forms.SignupForm()
+   
+    if request.method == 'POST':
+        if form.validate() == False:
+            return render_template('signup.html', form=form)
+        else:
+            newuser = User(form.nickname.data, form.email.data, form.password.data)
+            db.session.add(newuser)
+            db.session.commit()
+            session['email'] = newuser.email       
+        return redirect(url_for('profile'))
+    elif request.method == 'GET':
+        return render_template('signup.html', form=form)
+
+
+@app.route('/profile')
+def profile():
+    if 'email' not in session:
+        return redirect(url_for('signin'))
+    user = User.query.filter_by(email = session['email']).first()
+    if user is None:
+        return redirect(url_for('signin'))
+    else:
+        return render_template('pages/profile.html')
+
+
+@app.route('/signin', methods=['GET', 'POST'])
+def signin():
+    form = forms.SigninForm()
+
+    if request.method == 'POST':
+        if form.validate() == False:
+            return render_template('signin.html', form=form)
+        else:
+            session['email'] = form.email.data
+            return redirect(url_for('profile'))                    
+    elif request.method == 'GET':
+        return render_template('signin.html', form=form)
+
+@app.route('/signout')
+def signout():
+ 
+  if 'email' not in session:
+    return redirect(url_for('signin'))
+     
+  session.pop('email', None)
+  flash("You have been logged out")
+  return redirect(url_for('home'))
+    
 
 if __name__ == "__main__":
     app.run(debug=True)

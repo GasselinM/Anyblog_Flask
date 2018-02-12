@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Page Title</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" type="text/css" media="screen" href="main.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     <script src="main.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -16,16 +16,27 @@
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 </head>
 <body>
- 
-<nav>
-    <ul>
-        <li> <a href="{{ url_for('home') }}"> Home </a></li>
-        <li> <a href="{{ url_for('contact') }}"> Contact </a></li>
-        <li> <a href="{{ url_for('aboutme') }}"> aboutme </a></li>
-        <li> <a href="{{ url_for('posts_index') }}"> Got to blog </a></li>
-        <li> <a href="{{ url_for('login') }}">Login</a></li>        
-    </ul>
-</nav>
+<header>
+    <nav>
+    <div class="container">
+      <h1 class="logo">Flask App</h1>
+      <nav>
+        <ul class="menu">
+          <li><a href="{{ url_for('home') }}">Home</a></li>
+          <li><a href="{{ url_for('aboutme') }}">About</a></li>
+          <li><a href="{{ url_for('contact') }}">Contact</a></li>
+          <li> <a href="{{ url_for('posts_index') }}"> Got to blog </a></li>
+          {% if 'email' in session %}
+          <li><a href="{{ url_for('profile') }}">Profile</a></li>
+          <li><a href="{{ url_for('signout') }}">Sign Out</a></li>
+          {% else %}
+          <li><a href="{{ url_for('signup') }}">Sign Up</a></li>
+          <li><a href="{{ url_for('signin') }}">Sign In</a></li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+  </header>
 {% with messages = get_flashed_messages() %}
 {% if messages %}
 <ul>
