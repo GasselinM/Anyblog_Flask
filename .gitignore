@@ -1,0 +1,7 @@
+venv/
+.DS_Store
+*.pyo
+*.pyc
+__pycache__
+app/bak
+theme
