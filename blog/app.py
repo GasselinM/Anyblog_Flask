@@ -99,13 +99,24 @@ def editpost(id):
         content = request.form['content']
 
         post.title = title
-        post.constent = content
+        post.content = content
 
         db.session.commit()
+        flash('Record was successfully edited')
 
-        return redirect(url_for('post', id=id))
+        return redirect(url_for('posts_show', id=id))
     else:
         return render_template('edit.html', post=post)
+
+
+
+@app.route('/deletepost/<int:id>', methods=['GET'])
+def deletepost(id):
+    post = db.session.query(Post).filter(Post.id==id).first()
+    toto = db.session.delete(post)
+    db.session.commit()
+    flash("Post has been deleted!")
+    return redirect(url_for('posts_index'))
 
 
 
