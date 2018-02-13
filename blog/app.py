@@ -38,6 +38,7 @@ login_manager.init_app(app)
 
 
 db = SQLAlchemy(app)
+
 class User(db.Model):
     __tablename__ = 'users'
     uid = db.Column(db.Integer, primary_key=True)
@@ -92,10 +93,12 @@ def contact():
 def aboutme():
     return render_template("pages/aboutme.html")
 
+####
 @app.route("/blog")
 def posts_index():
-    posts = Post.query.all()
-    return render_template("posts/index.html", posts=posts)
+	#posts = Post.query.all()
+	posts = Post.query.order_by(Post.createdat.desc()).all()
+	return render_template("posts/index.html", posts=posts)
 
 @app.route('/blog/posts/<int:id>')
 def posts_show(id):

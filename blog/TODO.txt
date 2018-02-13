@@ -1,0 +1,11 @@
+sign in 
+entrer un useer name, voir le nom est dans la db :OK
+affichage en consequence des pages (avec ou sans sign in):OK
+
+creer / update /delete un post seulement si on est logge: OK
+
+afficher les posts par ordre de date : OK
+
+mettre un peu de boostrap : OK
+
+

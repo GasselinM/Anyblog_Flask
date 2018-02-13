@@ -1,7 +1,13 @@
 {% extends "pages/base.html" %}
 {% block content %}
-  <div class="jumbo">
-    <h2>Profile<h2>
-    <h3>This is {{ session['email'] }}'s profile page<h3>
-  </div>
+  <div class="col-lg-9">
+		<div class="card mt-4">
+			<div class="card-body">
+				<!-- TODO find something cleaner than a triple br-->
+				<br>
+				<br>
+				<br>
+				<h1>This is {{ session['email'] }}'s profile page</h1>
+			</div>
+		</div>
 {% endblock %}
