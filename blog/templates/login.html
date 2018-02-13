@@ -1,10 +1,17 @@
-{% extends "/pages/base.html" %}
+{% extends "pages/base.html" %}
+
 
 {% block content %}
-    <h1>Sign In</h1>
+<div class="col-lg-9">
+		<div class="card mt-4">
+			<div class="card-body">
+				<!-- TODO find something cleaner than a triple br-->
+
+    <h1>Sign In<<br></h1>
+			</div></div></div><br>
     <form action="" method="post">
         {{ form.hidden_tag() }}
-        <p>
+        <p><br><br><br><br>
             {{ form.username.label }}<br>
             {{ form.username(size=32) }}<br>
             {% for error in form.username.errors %}
@@ -21,4 +28,7 @@
         <p>{{ form.remember_me() }} {{ form.remember_me.label }}</p>
         <p>{{ form.submit() }}</p>
     </form>
+
+</div>
+</div>
 {% endblock %}

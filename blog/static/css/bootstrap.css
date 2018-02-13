@@ -4,6 +4,35 @@
  * Copyright 2011-2018 Twitter, Inc.
  * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
  */
+ /* Signup form */
+form input#firstname,
+form input#lastname,
+form input#password {
+  width: 400px;
+  background-color: #fafafa;
+  -webkit-border-radius: 3px;
+     -moz-border-radius: 3px;
+          border-radius: 3px;
+  border: 1px solid #cccccc;
+  padding: 5px;
+  font-size: 1.1em;
+}
+ 
+form input#password {
+  margin-bottom: 10px;
+}
+
+footer {
+	position:absolute;
+
+	bottom:0;
+	
+	width:100%;
+	
+	padding-top:50px;
+	
+	height:50px;
+}
  :root {
 	--blue: #007bff;
 	--indigo: #6610f2;

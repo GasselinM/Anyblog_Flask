@@ -2,22 +2,46 @@
 
 {% block content %} 
 {% if 'email' in session %}
-<div class="navigation">
-    <ul>
-        <li><a href= "{{ url_for('new') }}">Create</a></li>
-</div>
+
+<div class="col-lg-3">
+		<h1 class="my-4">Actions</h1>
+		<div class="list-group">
+		  <a href="{{ url_for('new') }}" class="list-group-item active">Create</a>
+		</div>
+	  </div>
 {% endif %}
-    <h1>Blog</h1>
-    {% for post in posts %}
-    <article>
-        <h2>
-            <a href= "{{ url_for('posts_show', id=post.id) }}">
-                #{{ post.id }} - {{ post.title|lower }}
-            </a>
-        </h2>
-        <p>Created on {{ post.createdat }}</p>
-        <p>{{ post.content }}</p>
-    </article>
-    {% endfor %}
+<div class="col-lg-9">
+		<div class="card mt-4">
+			<div class="card-body">
+				<!-- TODO find something cleaner than a triple br-->
+				<h1>Blog Articles</h1>
+			</div>
+        </div>
+        <br>
+
+
+        <div class="col-lg-9">
+                <div class="card card-outline-secondary my-4">
+                  <div class="card-header">
+                    All posts
+                  </div>
+                  <div class="card-body">
+                        {% for post in posts %}
+                        <a href= "{{ url_for('posts_show', id=post.id) }}">
+                        #{{ post.id }} - {{ post.title|lower }}
+                        <p>{{ post.content }}</p>
+                    <small class="text-muted">Posted by Anonymous on 3/1/17</small>
+                    <hr>
+                    {% endfor %}
+
+                  </div>
+                </div>
+                <!-- /.card -->
+      
+              </div>
+              <!-- /.col-lg-9 -->
+      
+            </div>
+
 
 {% endblock %}

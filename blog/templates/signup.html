@@ -1,7 +1,13 @@
 {% extends "pages/base.html" %}
  
 {% block content %}
-  <h2>Sign up</h2>
+<div class="col-lg-9">
+		<div class="card mt-4">
+			<div class="card-body">
+				<!-- TODO find something cleaner than a triple br-->
+
+    <h1>Sign up<br></h1>
+			</div></div></div>
  
   {% for message in form.nickname.errors %}
     <div class="flash">{{ message }}</div>
@@ -16,6 +22,7 @@
   {% endfor %}
    
   <form action="{{ url_for('signup') }}" method=post>
+      <br><br><br><br>
     {{ form.hidden_tag() }}
      
     {{ form.nickname.label }}

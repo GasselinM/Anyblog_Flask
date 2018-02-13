@@ -1,24 +1,29 @@
-<html>
-   <body>
-   
-      <h3>Students - Flask SQLAlchemy example</h3>
-      <hr/>
+{% extends "pages/base.html" %}
+{% block content %}
+
+<div class="col-lg-9">
+		<div class="card mt-4">
+			<div class="card-body">
+      <h1>Add your Blabla Post</h1> 
+			</div></div></div>
       
       {%- for category, message in get_flashed_messages(with_categories = true) %}
          <div class = "alert alert-danger">
             {{ message }}
          </div>
       {%- endfor %}
+      <div class="col-lg-9">
+            <br><br><br><br>
+            <div class="card mt-4">
       
       <form action = "{{ request.path }}" method = "post">
          <label for = "title">Title</label><br>
-         <input type = "text" name = "title" placeholder = "Title" /><br>
+         <input size="82" type = "text" name = "title" placeholder = "Title" /><br>
         
          <label for = "content">Content</label><br>
-         <textarea name = "content" placeholder = "content"></textarea><br>
+         <textarea rows="10" cols="80" name = "content" placeholder = "content"></textarea><br>
 
          <input type = "submit" value = "Submit" />
       </form>
-      
-   </body>
-</html>
+            </div></div>
+      {% endblock %}
