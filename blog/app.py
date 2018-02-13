@@ -7,6 +7,10 @@ from wtforms import Form
 import forms
 import os
 from flask import render_template, request, flash
+from flask_login import LoginManager
+from flask_login import login_required
+
+
 
 #from flask.ext.sqlalchemy import SQLAlchemy
 from werkzeug import generate_password_hash, check_password_hash
@@ -28,8 +32,12 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database/db.sqlite3'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 #SQLALCHEMY_MIGRATE_REPO = os.path.join(basedir, 'db_repository')
 
-db = SQLAlchemy(app)
+admin = Admin(app)
+login_manager = LoginManager()
+login_manager.init_app(app)
 
+
+db = SQLAlchemy(app)
 class User(db.Model):
     __tablename__ = 'users'
     uid = db.Column(db.Integer, primary_key=True)
@@ -58,7 +66,7 @@ class Post(db.Model):
     content = db.Column(db.Text)
     createdat = db.Column(db.DateTime, default= db.func.now())
     updateat = db.Column(db.DateTime, default= db.func.now(), onupdate=db.func.now())
-    #user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('users.uid'))
 
     def __init__(self, title, content):
         self.title = title
@@ -66,6 +74,9 @@ class Post(db.Model):
 
     def __repr__(self):
         return '<Post %r>' % (self.content)
+
+admin.add_view(ModelView(Post, db.session))
+admin.add_view(ModelView(User, db.session))
 
 
 
@@ -96,6 +107,7 @@ def posts_show(id):
 @app.errorhandler(404)
 def page_not_found(error):
     return render_template('pages/error404.html'), 404
+
 
 @app.route('/new', methods = ['GET', 'POST'])
 def new():
@@ -193,13 +205,11 @@ def signin():
 
 @app.route('/signout')
 def signout():
- 
-  if 'email' not in session:
-    return redirect(url_for('signin'))
-     
-  session.pop('email', None)
-  flash("You have been logged out")
-  return redirect(url_for('home'))
+    if 'email' not in session:
+        return redirect(url_for('signin'))
+    session.pop('email', None)
+    flash("You have been logged out")
+    return redirect(url_for('home'))
     
 
 if __name__ == "__main__":
