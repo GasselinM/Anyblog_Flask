@@ -1,4 +1,4 @@
-from flask import Flask, render_template, abort, flash, redirect, request, url_for, session
+from flask import Flask, render_template, abort, flash, redirect, request, url_for, session, jsonify, make_response
 from flask_sqlalchemy import SQLAlchemy
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
@@ -10,16 +10,23 @@ from flask import render_template, request, flash
 from flask_login import LoginManager
 from flask_login import login_required
 
+import uuid
+from werkzeug.security import generate_password_hash, check_password_hash
+import jwt
+import datetime
+from functools import wraps
+
+
 
 
 #from flask.ext.sqlalchemy import SQLAlchemy
-from werkzeug import generate_password_hash, check_password_hash
+#from werkzeug import generate_password_hash, check_password_hash
 
 #from flaskext.mail import Mail, Message
 
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'you-will-never-guess'
+app.config['SECRET_KEY'] = 'thisissecret'
 #basedir = os.path.abspath(os.path.dirname(__file__))
 
 
@@ -68,10 +75,12 @@ class Post(db.Model):
     createdat = db.Column(db.DateTime, default= db.func.now())
     updateat = db.Column(db.DateTime, default= db.func.now(), onupdate=db.func.now())
     user_id = db.Column(db.Integer, db.ForeignKey('users.uid'))
+    author = db.Column(db.String(255))
 
-    def __init__(self, title, content):
+    def __init__(self, title, content, author):
         self.title = title
         self.content = content
+        self.author = author
 
     def __repr__(self):
         return '<Post %r>' % (self.content)
@@ -118,7 +127,8 @@ def new():
         if not request.form['content'] or not request.form['title']:
             flash('Please enter all the fields', 'error')
         else:
-            postarticle = Post(request.form['title'], request.form['content'])
+            auth= User.query.filter_by(email = session['email']).first()
+            postarticle = Post(request.form['title'], request.form['content'], author=auth.email)
             db.session.add(postarticle)
             db.session.commit()
             flash('Record was successfully added')
@@ -129,29 +139,38 @@ def new():
 @app.route('/editpost/<int:id>', methods=['GET', 'POST'])
 def editpost(id):
     post = db.session.query(Post).filter(Post.id==id).first()
+    auth = User.query.filter_by(email = session['email']).first()
+    if post.author == auth.email:
 
-    if request.method == 'POST':
-        title = request.form['title']
-        content = request.form['content']
+        if request.method == 'POST':
+            title = request.form['title']
+            content = request.form['content']
 
-        post.title = title
-        post.content = content
+            post.title = title
+            post.content = content
 
-        db.session.commit()
-        flash('Record was successfully edited')
+            db.session.commit()
+            flash('Record was successfully edited')
 
-        return redirect(url_for('posts_show', id=id))
+            return redirect(url_for('posts_show', id=id))
+        else:
+            return render_template('edit.html', post=post)
     else:
-        return render_template('edit.html', post=post)
+        flash('you must be the owner of the post!!')
+        return  redirect(url_for('posts_show', id=id))
 
 
 
 @app.route('/deletepost/<int:id>', methods=['GET'])
 def deletepost(id):
     post = db.session.query(Post).filter(Post.id==id).first()
-    toto = db.session.delete(post)
-    db.session.commit()
-    flash("Post has been deleted!")
+    auth = User.query.filter_by(email = session['email']).first()
+    if post.author == auth.email:
+        toto = db.session.delete(post)
+        db.session.commit()
+        flash("Post has been deleted!")
+        return redirect(url_for('posts_index'))
+    flash('you must be the owner of the post!!')
     return redirect(url_for('posts_index'))
 
 
@@ -176,7 +195,8 @@ def signup():
             newuser = User(form.nickname.data, form.email.data, form.password.data)
             db.session.add(newuser)
             db.session.commit()
-            session['email'] = newuser.email       
+            session['email'] = newuser.email
+            session['nickname'] = newuser.nickname
         return redirect(url_for('profile'))
     elif request.method == 'GET':
         return render_template('signup.html', form=form)
@@ -187,10 +207,11 @@ def profile():
     if 'email' not in session:
         return redirect(url_for('signin'))
     user = User.query.filter_by(email = session['email']).first()
+    #nickname = User.query.filter_by('nickname').first()
     if user is None:
         return redirect(url_for('signin'))
     else:
-        return render_template('pages/profile.html')
+        return render_template('pages/profile.html', users=user)
 
 
 @app.route('/signin', methods=['GET', 'POST'])
@@ -213,7 +234,44 @@ def signout():
     session.pop('email', None)
     flash("You have been logged out")
     return redirect(url_for('home'))
-    
+
+
+
+@app.route('/user', methods=['GET'])
+def get_all_users():
+
+    userss = User.query.all()
+
+    output = []
+
+    for user in userss:
+        user_data = {}
+        user_data['uid'] = user.uid
+        user_data['nickname'] = user.nickname
+        user_data['email'] = user.email
+        user_data['pwdhash'] = user.pwdhash
+        output.append(user_data)
+
+    return jsonify({'users' : output})
+
+@app.route('/posts', methods=['GET'])
+def get_all_post():
+
+    posts = Post.query.all()
+
+    output = []
+
+    for post in posts:
+        user_post = {}
+        user_post['id'] = post.id
+        user_post['title'] = post.title
+        user_post['content'] = post.content
+        user_post['createdat'] = post.createdat
+        user_post['updateat'] = post.updateat
+        user_post['user_id'] = post.user_id
+        output.append(user_post)
+
+    return jsonify({'posts' : output})
 
 if __name__ == "__main__":
     app.run(debug=True)
