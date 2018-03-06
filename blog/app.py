@@ -4,7 +4,7 @@ from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from datetime import datetime
 from wtforms import Form
-import forms
+#import forms
 import os
 from flask import render_template, request, flash
 from flask_login import LoginManager
@@ -15,6 +15,10 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 import datetime
 from functools import wraps
+
+
+from weboob.core import Weboob
+from weboob.capabilities.job import CapJob
 
 
 
@@ -85,10 +89,49 @@ class Post(db.Model):
     def __repr__(self):
         return '<Post %r>' % (self.content)
 
+class Poleemploi(db.Model):
+    id = db.Column(db.Integer, primary_key = True)
+    society_name = db.Column(db.Text)
+    place = db.Column(db.Text)
+    title = db.Column(db.Text)
+    contract_type = db.Column(db.Text)
+    publication_date = db.Column(db.DateTime)
+
+    def __init__(self, society_name, place, title, contract_type, publication_date):
+        self.title = title
+        self.society_name = society_name
+        self.place = place
+        self.contract_type = contract_type
+        self.publication_date = publication_date
+
+
+    def __repr__(self):
+        return '<Job %r>' % (self.title)
+    
+
+
 admin.add_view(ModelView(Post, db.session))
 admin.add_view(ModelView(User, db.session))
 
 
+@app.route('/newjobs', methods = ['GET', 'POST'])
+def new_jobs():
+    w = Weboob()
+    w.load_backends(CapJob)
+    words = u'python Paris'
+    jobs=w.search_job(words)
+    jobs=list(jobs)
+    for job in jobs:
+        new = Poleemploi(society_name=job.society_name, place=job.place, title=job.title , contract_type=job.contract_type , publication_date=job.publication_date )
+        db.session.add(new)
+        db.session.commit()
+
+
+@app.route("/jobs")
+def jobs_index():
+	#posts = Post.query.all()
+	jobs = Poleemploi.query.order_by(Poleemploi.id.desc()).all()
+	return render_template("posts/jobs.html", jobs=jobs)
 
 @app.route("/")
 def home():
