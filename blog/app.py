@@ -4,11 +4,10 @@ from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from datetime import datetime
 from wtforms import Form
-#import forms
+import forms
+from classalchemy import  User, Post, Poleemploi
 import os
 from flask import render_template, request, flash
-from flask_login import LoginManager
-from flask_login import login_required
 
 import uuid
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -21,95 +20,20 @@ from weboob.core import Weboob
 from weboob.capabilities.job import CapJob
 
 
-
-
-#from flask.ext.sqlalchemy import SQLAlchemy
-#from werkzeug import generate_password_hash, check_password_hash
-
-#from flaskext.mail import Mail, Message
-
-
 app = Flask(__name__)
+
 app.config['SECRET_KEY'] = 'thisissecret'
-#basedir = os.path.abspath(os.path.dirname(__file__))
-
-
-
-#admin = Admin(app, name='microblog', template_mode='bootstrap3')
-#admin.add_view(ModelView(title, db.session))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database/db.sqlite3'
-#app.config.from_object('config')
-#SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'app.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-#SQLALCHEMY_MIGRATE_REPO = os.path.join(basedir, 'db_repository')
-
-admin = Admin(app)
-login_manager = LoginManager()
-login_manager.init_app(app)
-
 
 db = SQLAlchemy(app)
 
-class User(db.Model):
-    __tablename__ = 'users'
-    uid = db.Column(db.Integer, primary_key=True)
-    nickname = db.Column(db.String(64))
-    email = db.Column(db.String(120), unique=True)
-    #posts = db.relationship('Post', backref='author', lazy='dynamic')
-    pwdhash = db.Column(db.String(54))
-
-    def __init__(self, nickname, email, password):
-        self.nickname = nickname.title()
-        self.email = email.lower()
-        self.set_password(password)
-
-    def set_password(self, password):
-        self.pwdhash = generate_password_hash(password)
-   
-    def check_password(self, password):
-        return check_password_hash(self.pwdhash, password)
-
-    def __repr__(self):
-        return '<User %r>' % (self.nickname)
-
-class Post(db.Model):
-    id = db.Column(db.Integer, primary_key = True)
-    title = db.Column(db.String(255))
-    content = db.Column(db.Text)
-    createdat = db.Column(db.DateTime, default= db.func.now())
-    updateat = db.Column(db.DateTime, default= db.func.now(), onupdate=db.func.now())
-    user_id = db.Column(db.Integer, db.ForeignKey('users.uid'))
-    author = db.Column(db.String(255))
-
-    def __init__(self, title, content, author):
-        self.title = title
-        self.content = content
-        self.author = author
-
-    def __repr__(self):
-        return '<Post %r>' % (self.content)
-
-class Poleemploi(db.Model):
-    id = db.Column(db.Integer, primary_key = True)
-    society_name = db.Column(db.Text)
-    place = db.Column(db.Text)
-    title = db.Column(db.Text)
-    contract_type = db.Column(db.Text)
-    publication_date = db.Column(db.DateTime)
-
-    def __init__(self, society_name, place, title, contract_type, publication_date):
-        self.title = title
-        self.society_name = society_name
-        self.place = place
-        self.contract_type = contract_type
-        self.publication_date = publication_date
 
 
-    def __repr__(self):
-        return '<Job %r>' % (self.title)
-    
+with app.app_context():
+    db.init_app(app)
 
-
+admin = Admin(app)
 admin.add_view(ModelView(Post, db.session))
 admin.add_view(ModelView(User, db.session))
 
@@ -118,19 +42,21 @@ admin.add_view(ModelView(User, db.session))
 def new_jobs():
     w = Weboob()
     w.load_backends(CapJob)
-    words = u'python Paris'
+    #w['popolemploi']
+    words = u'python'
     jobs=w.search_job(words)
     jobs=list(jobs)
+    Poleemploi.query.delete()
     for job in jobs:
         new = Poleemploi(society_name=job.society_name, place=job.place, title=job.title , contract_type=job.contract_type , publication_date=job.publication_date )
         db.session.add(new)
         db.session.commit()
+    return redirect(url_for('jobs_index'))
 
 
 @app.route("/jobs")
 def jobs_index():
-	#posts = Post.query.all()
-	jobs = Poleemploi.query.order_by(Poleemploi.id.desc()).all()
+	jobs = Poleemploi.query.order_by(Poleemploi.id.desc()).limit(10)
 	return render_template("posts/jobs.html", jobs=jobs)
 
 @app.route("/")
@@ -217,16 +143,6 @@ def deletepost(id):
     return redirect(url_for('posts_index'))
 
 
-"""
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    form = LoginForm()
-    if form.validate_on_submit():
-        flash('Login requested for user {}, remember_me={}'.format(
-            form.username.data, form.remember_me.data))
-        return redirect(url_for('home'))
-    return render_template('login.html', title='Sign In', form=form)"""
-
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     form = forms.SignupForm()
@@ -282,9 +198,10 @@ def signout():
 
 @app.route('/user', methods=['GET'])
 def get_all_users():
+    if 'email' not in session:
+        return redirect(url_for('signin'))
 
     userss = User.query.all()
-
     output = []
 
     for user in userss:
@@ -299,6 +216,8 @@ def get_all_users():
 
 @app.route('/posts', methods=['GET'])
 def get_all_post():
+    if 'email' not in session:
+        return redirect(url_for('signin'))
 
     posts = Post.query.all()
 

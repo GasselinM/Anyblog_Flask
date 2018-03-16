@@ -30,9 +30,13 @@
         <div class="collapse navbar-collapse" id="navbarResponsive">
           <ul class="navbar-nav ml-auto">
             <li class="nav-item active">
-              <a class="nav-link" href="{{ url_for('home') }}">Home
+              <a class="nav-link" href="{{ url_for('home') }}">Home</a>
                 <span class="sr-only">(current)</span>
               </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('jobs_index') }}">Python Jobs</a>
+            </li>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="{{ url_for('posts_index') }}">Go to blog</a>
@@ -42,14 +46,23 @@
             </li>
             <li class="nav-item">
               <a class="nav-link" href="{{ url_for('contact') }}">Contact</a>
-			</li>
+			      </li>
 			{% if 'email' in session %}
             <li class="nav-item">
               <a class="nav-link" href="{{ url_for('profile') }}">Profile</a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="{{ url_for('signout') }}">Log out</a>
-			</li>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('get_all_post') }}">Posts API</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('get_all_users') }}">Users API</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('admin.index') }}">Admin</a>
+            </li>
 			{% else %}
              <li class="nav-item">
              <a class="nav-link" href="{{ url_for('signup') }}">Sign up</a>
@@ -57,7 +70,7 @@
             <li class="nav-item">
               <a class="nav-link" href="{{ url_for('signin') }}">Sign in </a>
             </li>
-            {% endif %}
+      {% endif %}
           </ul>
         </div>
       </div>
